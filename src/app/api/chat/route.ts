@@ -85,7 +85,7 @@ JSONには以下の構造を含める必要があります。
 - chatMessage: ユーザーに表示するマークダウン形式のチャット返答。見やすく装飾してください。
 - analysisData: 動画分析を行った場合のみ、このオブジェクトに構造化データを入れてください。ただのチャットの場合は null にしてください。
   - goodPoints: 良い点の配列（必ず1つ以上挙げてください）
-  - badPoints: 改善点の配列（必ず1つ以上挙げてください）
+  - badPoints: 改善点の配列（必ず1つ以上挙げてください。省略や空配列は許可されません）
   - practiceDrills: おすすめ練習ドリルの配列（必ず1つ以上挙げてください）`;
 
     const userMessageObj = messages[messages.length - 1];
@@ -119,7 +119,7 @@ JSONには以下の構造を含める必要があります。
         parts: currentParts
     });
 
-    const targetModel = uploadedFileRef ? 'gemini-3.5-flash' : 'gemini-3.1-flash';
+    const targetModel = uploadedFileRef ? 'gemini-3.1-pro-preview' : 'gemini-3.1-flash-lite';
 
     console.log(`Sending request to Gemini using model: ${targetModel}...`);
     const response = await generateContentWithRetry(ai, {
