@@ -10,6 +10,29 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const storage = new Storage();
 const bucketName = 'mizukami-2b54e-golf-videos';
 
+// リトライ処理（Exponential Backoff）用関数
+async function generateContentWithRetry(aiClient: any, params: any, maxRetries = 3) {
+  let attempt = 0;
+  while (attempt < maxRetries) {
+    try {
+      return await aiClient.models.generateContent(params);
+    } catch (error: any) {
+      const isOverloaded = error.status === 503 || error.status === 429 || 
+        error.message?.includes("503") || error.message?.includes("high demand") || error.message?.includes("UNAVAILABLE");
+      
+      if (isOverloaded) {
+        attempt++;
+        if (attempt >= maxRetries) throw error;
+        const delay = 2000 * Math.pow(2, attempt - 1); // 2s, 4s
+        console.warn(`Gemini API overloaded. Retrying in ${delay}ms... (Attempt ${attempt}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        throw error;
+      }
+    }
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const { messages, objectName } = await req.json();
@@ -96,7 +119,7 @@ JSONには以下の構造を含める必要があります。
     });
 
     console.log("Sending request to Gemini...");
-    const response = await ai.models.generateContent({
+    const response = await generateContentWithRetry(ai, {
       model: 'gemini-3.5-flash',
       contents: contents,
       config: {
