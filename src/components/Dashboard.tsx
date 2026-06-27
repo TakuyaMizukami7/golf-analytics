@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Activity, Target, BarChart3, TrendingUp, AlertCircle, Maximize2, Sun, CloudRain, Cloud } from "lucide-react";
+import Image from "next/image";
+import { Activity, Target, BarChart3, TrendingUp, AlertCircle, Maximize2, Sun, CloudRain, Cloud, CheckCircle2, XCircle, Dumbbell } from "lucide-react";
+import { AnalysisData } from "@/types";
 
 interface DashboardProps {
   onTopicClick: (prompt: string) => void;
-  isAnalyzed: boolean;
+  analysisData: AnalysisData | null;
 }
 
 function WeatherWidget() {
@@ -15,7 +17,6 @@ function WeatherWidget() {
   useEffect(() => {
     const fetchWeather = async () => {
       try {
-        // 東京の天気予報（今日のデータ）
         const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=35.6895&longitude=139.6917&daily=weathercode,temperature_2m_max&timezone=Asia%2FTokyo&forecast_days=1");
         const data = await res.json();
         
@@ -49,24 +50,35 @@ function WeatherWidget() {
   if (!weather) return null;
 
   return (
-    <div className="flex items-center gap-3 bg-slate-800/60 border border-slate-700 px-4 py-2 rounded-xl backdrop-blur-sm">
-      <div className={`p-2 rounded-lg ${weather.isGoodForGolf ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
-        {weather.code >= 50 ? <CloudRain className="w-5 h-5" /> : (weather.code > 0 ? <Cloud className="w-5 h-5" /> : <Sun className="w-5 h-5" />)}
+    <div className="flex items-center gap-3">
+      {/* キャラクターアイコン */}
+      <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-emerald-500/30 shadow-lg shrink-0 bg-slate-800">
+        <Image 
+          src="/image/golf-coach3.png" 
+          alt="AI Coach" 
+          fill 
+          className="object-cover"
+        />
       </div>
-      <div className="flex flex-col">
-        <div className="flex items-baseline gap-2">
-          <span className="text-sm font-bold text-white">関東 (今日)</span>
-          <span className="text-xs text-slate-300">{weather.temp}°C {weather.description}</span>
+      
+      {/* 吹き出し風ウィジェット */}
+      <div className="flex flex-col bg-slate-800/80 border border-slate-700 px-4 py-2 rounded-2xl rounded-tl-sm backdrop-blur-sm shadow-md">
+        <div className="flex items-baseline gap-2 mb-0.5">
+          <span className="text-xs font-bold text-slate-200">関東 (今日)</span>
+          <span className="text-[10px] text-slate-400">{weather.temp}°C {weather.description}</span>
         </div>
-        <span className={`text-xs font-medium ${weather.isGoodForGolf ? 'text-emerald-400' : 'text-rose-400'}`}>
-          {weather.isGoodForGolf ? '絶好のゴルフ日和です⛳️' : 'あいにくの天気です☔️'}
-        </span>
+        <div className="flex items-center gap-1.5">
+          {weather.code >= 50 ? <CloudRain className="w-3.5 h-3.5 text-rose-400" /> : (weather.code > 0 ? <Cloud className="w-3.5 h-3.5 text-slate-300" /> : <Sun className="w-3.5 h-3.5 text-emerald-400" />)}
+          <span className={`text-xs font-bold ${weather.isGoodForGolf ? 'text-emerald-400' : 'text-rose-400'}`}>
+            {weather.isGoodForGolf ? '絶好のゴルフ日和ですね⛳️' : 'あいにくの天気ですね☔️'}
+          </span>
+        </div>
       </div>
     </div>
   );
 }
 
-export default function Dashboard({ onTopicClick, isAnalyzed }: DashboardProps) {
+export default function Dashboard({ onTopicClick, analysisData }: DashboardProps) {
   return (
     <div className="flex flex-col h-full w-full gap-6 p-4 md:p-6 overflow-y-auto no-scrollbar relative">
       
@@ -79,11 +91,11 @@ export default function Dashboard({ onTopicClick, isAnalyzed }: DashboardProps) 
         <WeatherWidget />
       </div>
 
-      {/* Content Area with Empty State handling */}
+      {/* Content Area */}
       <div className="relative flex-1 flex flex-col gap-6">
         
         {/* Empty State Overlay */}
-        {!isAnalyzed && (
+        {!analysisData && (
           <div className="absolute inset-0 z-10 bg-slate-900/60 backdrop-blur-md flex flex-col items-center justify-center p-6 rounded-2xl border border-white/5">
             <div className="bg-slate-800/90 p-8 rounded-2xl border border-emerald-500/30 shadow-[0_0_30px_rgba(16,185,129,0.15)] flex flex-col items-center text-center max-w-sm w-full">
               <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mb-6">
@@ -98,170 +110,106 @@ export default function Dashboard({ onTopicClick, isAnalyzed }: DashboardProps) 
           </div>
         )}
 
-        {/* Summary Cards */}
-        <div className={`grid grid-cols-2 lg:grid-cols-4 gap-4 transition-opacity duration-700 ${!isAnalyzed ? 'opacity-30 pointer-events-none select-none blur-sm' : ''}`}>
-          <div 
-            className="glass-panel p-4 rounded-2xl border border-white/10 hover:border-emerald-500/50 cursor-pointer transition-all hover:bg-white/5 group"
-            onClick={() => onTopicClick("最近の平均スコア（88）について、さらにスコアを縮めるためのアドバイスをください。")}
-          >
-            <div className="flex items-center gap-2 mb-2 text-slate-300">
-              <Activity className="w-4 h-4 text-emerald-400" />
-              <span className="text-sm font-medium">平均スコア</span>
-            </div>
-            <div className="text-3xl font-bold text-white group-hover:text-emerald-400 transition-colors">88</div>
-            <div className="text-xs text-emerald-400 mt-1 flex items-center gap-1">
-              <TrendingUp className="w-3 h-3" />
-              <span>-2 from last month</span>
-            </div>
-          </div>
-
-          <div 
-            className="glass-panel p-4 rounded-2xl border border-white/10 hover:border-cyan-500/50 cursor-pointer transition-all hover:bg-white/5 group"
-            onClick={() => onTopicClick("フェアウェイキープ率（62%）について分析して。ティーショットの安定性を高めたいです。")}
-          >
-            <div className="flex items-center gap-2 mb-2 text-slate-300">
-              <Target className="w-4 h-4 text-cyan-400" />
-              <span className="text-sm font-medium">FWキープ率</span>
-            </div>
-            <div className="text-3xl font-bold text-white group-hover:text-cyan-400 transition-colors">62<span className="text-lg text-slate-400">%</span></div>
-            <div className="text-xs text-slate-400 mt-1">
-              Target: 65%
-            </div>
-          </div>
-
-          <div 
-            className="glass-panel p-4 rounded-2xl border border-white/10 hover:border-purple-500/50 cursor-pointer transition-all hover:bg-white/5 group"
-            onClick={() => onTopicClick("平均パット数（34）について、パッティングの改善方法を教えて。")}
-          >
-            <div className="flex items-center gap-2 mb-2 text-slate-300">
-              <div className="w-4 h-4 rounded-full bg-purple-500/20 border border-purple-500/50 flex items-center justify-center">
-                <div className="w-1.5 h-1.5 bg-purple-400 rounded-full" />
+        {/* 実際の分析結果が表示されるUI */}
+        {analysisData && (
+          <div className="flex flex-col gap-6 animate-in fade-in duration-700">
+            {/* Good Points */}
+            <div 
+              className="glass-panel p-6 rounded-2xl border border-emerald-500/30 hover:border-emerald-400/50 transition-all cursor-pointer group"
+              onClick={() => onTopicClick("良い点として挙げてもらった部分について、さらに伸ばすための意識の仕方を教えてください。")}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-emerald-500/20 rounded-lg">
+                  <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white group-hover:text-emerald-400 transition-colors">良い点 (Good Points)</h3>
               </div>
-              <span className="text-sm font-medium">平均パット</span>
+              <ul className="space-y-3">
+                {analysisData.goodPoints.map((point, i) => (
+                  <li key={i} className="flex items-start gap-2 text-slate-200">
+                    <span className="text-emerald-400 mt-1">•</span>
+                    <span>{point}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <div className="text-3xl font-bold text-white group-hover:text-purple-400 transition-colors">34</div>
-            <div className="text-xs text-slate-400 mt-1">
-              +1 from last month
+
+            {/* Bad Points */}
+            <div 
+              className="glass-panel p-6 rounded-2xl border border-rose-500/30 hover:border-rose-400/50 transition-all cursor-pointer group"
+              onClick={() => onTopicClick("改善点として指摘された部分について、具体的にコースで気を付けるべきことは何ですか？")}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-rose-500/20 rounded-lg">
+                  <XCircle className="w-6 h-6 text-rose-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white group-hover:text-rose-400 transition-colors">改善点 (Needs Improvement)</h3>
+              </div>
+              <ul className="space-y-3">
+                {analysisData.badPoints.map((point, i) => (
+                  <li key={i} className="flex items-start gap-2 text-slate-200">
+                    <span className="text-rose-400 mt-1">•</span>
+                    <span>{point}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Practice Drills */}
+            <div 
+              className="glass-panel p-6 rounded-2xl border border-cyan-500/30 hover:border-cyan-400/50 transition-all cursor-pointer group"
+              onClick={() => onTopicClick("提案してくれた練習ドリルを自宅でもできるアレンジ方法はありますか？")}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-cyan-500/20 rounded-lg">
+                  <Dumbbell className="w-6 h-6 text-cyan-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white group-hover:text-cyan-400 transition-colors">おすすめ練習ドリル (Practice Drills)</h3>
+              </div>
+              <ul className="space-y-3">
+                {analysisData.practiceDrills.map((drill, i) => (
+                  <li key={i} className="flex items-start gap-2 text-slate-200 bg-slate-800/50 p-3 rounded-lg border border-white/5">
+                    <span className="text-cyan-400 font-bold">{i + 1}.</span>
+                    <span>{drill}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
+        )}
 
-          <div 
-            className="glass-panel p-4 rounded-2xl border border-white/10 hover:border-rose-500/50 cursor-pointer transition-all hover:bg-white/5 group"
-            onClick={() => onTopicClick("ミスの傾向について。スライスのミスが多い原因と対策を教えてください。")}
-          >
-            <div className="flex items-center gap-2 mb-2 text-slate-300">
-              <AlertCircle className="w-4 h-4 text-rose-400" />
-              <span className="text-sm font-medium">主なミス</span>
-            </div>
-            <div className="text-xl font-bold text-white group-hover:text-rose-400 transition-colors mt-1">スライス</div>
-            <div className="text-xs text-rose-400 mt-1">
-              右へのプッシュアウト傾向
-            </div>
-          </div>
-        </div>
-
-        {/* Main Charts */}
-        <div className={`grid grid-cols-1 xl:grid-cols-2 gap-6 pb-6 transition-opacity duration-700 ${!isAnalyzed ? 'opacity-30 pointer-events-none select-none blur-sm' : ''}`}>
-          
-          {/* Distance Graph Mock */}
-          <div 
-            className="glass-panel p-5 rounded-2xl border border-white/10 hover:border-emerald-500/30 cursor-pointer transition-all group flex flex-col min-h-[300px]"
-            onClick={() => onTopicClick("番手別の飛距離データを見ているんだけど、7番アイアン（150y）と6番アイアン（155y）の飛距離差があまりない理由と解決策は？")}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2">
+        {/* モックグラフ（未分析時のみぼかして表示） */}
+        {!analysisData && (
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pb-6 opacity-30 pointer-events-none select-none blur-sm">
+            <div className="glass-panel p-5 rounded-2xl border border-white/10 min-h-[300px]">
+              <div className="flex items-center gap-2 mb-6">
                 <BarChart3 className="w-5 h-5 text-emerald-400" />
                 <h3 className="font-semibold text-white">番手別飛距離 (Yards)</h3>
               </div>
-              <Maximize2 className="w-4 h-4 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </div>
-            
-            <div className="flex-1 flex items-end justify-between gap-2 mt-4 px-2 relative">
-              {/* Grid lines */}
-              <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-10">
-                <div className="border-b border-white h-0"></div>
-                <div className="border-b border-white h-0"></div>
-                <div className="border-b border-white h-0"></div>
-                <div className="border-b border-white h-0"></div>
-                <div className="border-b border-white h-0"></div>
+              {/* Dummy Bars */}
+              <div className="flex-1 flex items-end justify-between gap-2 mt-4 px-2 relative h-40">
+                 {[95, 85, 78, 65, 55, 53, 45, 35, 25].map((h, i) => (
+                   <div key={i} className="w-full bg-slate-800/50 rounded-t-sm flex items-end justify-center h-full">
+                     <div className="w-full bg-emerald-500/60 rounded-t-sm" style={{ height: `${h}%` }} />
+                   </div>
+                 ))}
               </div>
-
-              {/* Bar Chart Mock */}
-              {[
-                { club: 'Dr', dist: 245, h: '95%' },
-                { club: '3W', dist: 220, h: '85%' },
-                { club: '5W', dist: 205, h: '78%' },
-                { club: '5I', dist: 175, h: '65%' },
-                { club: '6I', dist: 155, h: '55%' },
-                { club: '7I', dist: 150, h: '53%' }, 
-                { club: '8I', dist: 140, h: '45%' },
-                { club: '9I', dist: 125, h: '35%' },
-                { club: 'PW', dist: 110, h: '25%' },
-              ].map((item, i) => (
-                <div key={i} className="flex flex-col items-center gap-2 flex-1 group/bar z-10">
-                  <div className="text-xs text-slate-300 font-mono opacity-0 group-hover/bar:opacity-100 transition-opacity absolute -mt-6">
-                    {item.dist}
-                  </div>
-                  <div className="w-full bg-slate-800/50 rounded-t-sm flex items-end justify-center relative h-40">
-                    <div 
-                      className={`w-full rounded-t-sm transition-all duration-500 ${i === 4 || i === 5 ? 'bg-rose-500/80 shadow-[0_0_10px_rgba(244,63,94,0.5)]' : 'bg-emerald-500/60 group-hover/bar:bg-emerald-400'}`}
-                      style={{ height: item.h }}
-                    />
-                  </div>
-                  <div className="text-xs font-medium text-slate-400">{item.club}</div>
-                </div>
-              ))}
             </div>
-            <div className="mt-6 text-xs text-slate-500 text-center flex items-center justify-center gap-2 bg-rose-500/10 p-2 rounded-lg border border-rose-500/20">
-              <AlertCircle className="w-4 h-4 text-rose-500" />
-              <span className="text-rose-200">6番・7番アイアンの飛距離差が少ないため、AIに改善策を聞いてみましょう</span>
-            </div>
-          </div>
 
-          {/* Heatmap / Skeleton Mock */}
-          <div 
-            className="glass-panel p-5 rounded-2xl border border-white/10 hover:border-cyan-500/30 cursor-pointer transition-all group flex flex-col min-h-[300px]"
-            onClick={() => onTopicClick("ドライバーの打点ヒートマップを見ると、ヒール側に当たることが多いです。スイング軌道の改善方法を教えてください。")}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
+            <div className="glass-panel p-5 rounded-2xl border border-white/10 min-h-[300px]">
+              <div className="flex items-center gap-2 mb-4">
                 <Target className="w-5 h-5 text-cyan-400" />
-                <h3 className="font-semibold text-white">打点ヒートマップ (Driver)</h3>
+                <h3 className="font-semibold text-white">打点ヒートマップ</h3>
               </div>
-              <Maximize2 className="w-4 h-4 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </div>
-
-            <div className="flex-1 flex items-center justify-center relative min-h-[180px] bg-slate-900/50 rounded-xl overflow-hidden border border-slate-800">
-               {/* Club Face Mock */}
-              <div className="w-48 h-32 border-2 border-slate-600 rounded-[40%] bg-slate-800 relative overflow-hidden flex items-center justify-center shadow-inner">
-                {/* Score lines */}
-                <div className="absolute inset-0 flex flex-col justify-center items-center gap-2 opacity-30">
-                  <div className="w-2/3 h-[1px] bg-white"></div>
-                  <div className="w-3/4 h-[1px] bg-white"></div>
-                  <div className="w-3/4 h-[1px] bg-white"></div>
-                  <div className="w-3/4 h-[1px] bg-white"></div>
-                  <div className="w-2/3 h-[1px] bg-white"></div>
-                </div>
-                
-                {/* Heatmap Blob (Heel side biased) */}
-                <div className="absolute right-6 top-1/2 -translate-y-1/2 w-20 h-20 bg-rose-500/80 rounded-full blur-2xl mix-blend-screen"></div>
-                <div className="absolute right-8 top-1/2 -translate-y-1/2 w-12 h-12 bg-yellow-400/90 rounded-full blur-xl mix-blend-screen"></div>
-                <div className="absolute right-10 top-1/2 -translate-y-1/2 w-6 h-6 bg-white rounded-full blur-md"></div>
-                
-                {/* Sweet spot indicator */}
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 border border-white/30 rounded-full flex items-center justify-center">
-                  <div className="w-1 h-1 bg-white/50 rounded-full"></div>
+              <div className="flex-1 flex items-center justify-center relative min-h-[180px] bg-slate-900/50 rounded-xl border border-slate-800">
+                <div className="w-48 h-32 border-2 border-slate-600 rounded-[40%] bg-slate-800 relative">
+                  <div className="absolute right-6 top-1/2 -translate-y-1/2 w-20 h-20 bg-rose-500/80 rounded-full blur-2xl"></div>
                 </div>
               </div>
-            </div>
-            
-            <div className="mt-6 text-xs text-slate-500 text-center flex items-center justify-center gap-2 bg-cyan-500/10 p-2 rounded-lg border border-cyan-500/20">
-              <Target className="w-4 h-4 text-cyan-400" />
-              <span className="text-cyan-200">ヒール寄りに打点が集中しています。クリックしてAIの分析を見る</span>
             </div>
           </div>
+        )}
 
-        </div>
       </div>
     </div>
   );

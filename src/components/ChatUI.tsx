@@ -3,11 +3,12 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Paperclip, X, Loader2 } from "lucide-react";
 import ChatMessage, { Message } from "./ChatMessage";
+import { AnalysisData } from "@/types";
 
 interface ChatUIProps {
   triggerMessage?: string;
   onMessageTriggered?: () => void;
-  onAnalysisComplete?: () => void;
+  onAnalysisComplete?: (data: AnalysisData) => void;
 }
 
 export default function ChatUI({ triggerMessage, onMessageTriggered, onAnalysisComplete }: ChatUIProps = {}) {
@@ -132,9 +133,9 @@ export default function ChatUI({ triggerMessage, onMessageTriggered, onAnalysisC
       // 送信完了したらファイルクリア
       clearFile();
 
-      // 解析完了（動画添付があった場合）
-      if (attachedFile && onAnalysisComplete) {
-        onAnalysisComplete();
+      // 解析完了（分析データが返ってきた場合）
+      if (chatData.analysisData && onAnalysisComplete) {
+        onAnalysisComplete(chatData.analysisData);
       }
 
     } catch (error: any) {

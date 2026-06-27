@@ -3,10 +3,11 @@
 import { useState } from "react";
 import ChatUI from "@/components/ChatUI";
 import Dashboard from "@/components/Dashboard";
+import { AnalysisData } from "@/types";
 
 export default function Home() {
   const [triggerMessage, setTriggerMessage] = useState<string>("");
-  const [isAnalyzed, setIsAnalyzed] = useState<boolean>(false);
+  const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
 
   const handleTopicClick = (prompt: string) => {
     setTriggerMessage(prompt);
@@ -16,8 +17,20 @@ export default function Home() {
     setTriggerMessage("");
   };
 
-  const handleAnalysisComplete = () => {
-    setIsAnalyzed(true);
+  const handleAnalysisComplete = (data: AnalysisData) => {
+    setAnalysisData(data);
+  };
+
+  const toggleDebug = () => {
+    if (analysisData) {
+      setAnalysisData(null);
+    } else {
+      setAnalysisData({
+        goodPoints: ["アドレスの姿勢が非常に美しく、安定感があります。", "トップオブスイングでのクラブフェースの向きが理想的です。"],
+        badPoints: ["ダウンスイングで体が早く開いてしまい、振り遅れの原因になっています。", "インパクト時に重心が右足に残りがちです。"],
+        practiceDrills: ["右足ベタ足スイング: インパクトまで右足のかかとを浮かせないドリル", "両脇にタオルを挟んだハーフスイング練習"]
+      });
+    }
   };
 
   return (
@@ -31,11 +44,11 @@ export default function Home() {
             <input 
               type="checkbox" 
               className="sr-only" 
-              checked={isAnalyzed}
-              onChange={() => setIsAnalyzed(!isAnalyzed)}
+              checked={!!analysisData}
+              onChange={toggleDebug}
             />
-            <div className={`block w-10 h-6 rounded-full transition-colors ${isAnalyzed ? 'bg-emerald-500' : 'bg-slate-600'}`}></div>
-            <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${isAnalyzed ? 'transform translate-x-4' : ''}`}></div>
+            <div className={`block w-10 h-6 rounded-full transition-colors ${analysisData ? 'bg-emerald-500' : 'bg-slate-600'}`}></div>
+            <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${analysisData ? 'transform translate-x-4' : ''}`}></div>
           </div>
         </label>
       </div>
@@ -45,7 +58,7 @@ export default function Home() {
         
         {/* 左側: ダッシュボード */}
         <div className="flex-[2] lg:flex-[2.5] h-full overflow-hidden rounded-2xl glass-panel border border-white/5 bg-slate-900/30">
-          <Dashboard onTopicClick={handleTopicClick} isAnalyzed={isAnalyzed} />
+          <Dashboard onTopicClick={handleTopicClick} analysisData={analysisData} />
         </div>
 
         {/* 右側: チャットUI */}

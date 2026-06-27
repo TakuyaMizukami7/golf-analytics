@@ -54,7 +54,15 @@ export async function POST(req: Request) {
 ユーザーから提供されるスイング動画を分析し、良い点、改善点、おすすめの練習ドリルなどを論理的かつ励ますようなトーンで伝えてください。
 また、ゴルフの悩み相談に乗ったり、おすすめのゴルフ場を検索して提案することもできます。
 ユーザーとの対話は、親しみやすく、専門的なアドバイスを含めて行ってください。
-出力はマークダウン形式で行い、見やすく装飾してください。`;
+【重要】ゴルフの分析以外の日常会話や質問に対しては、10文字〜200文字程度の短く軽快な回答を心がけてください。
+
+【重要】出力は必ずJSONフォーマットで行ってください。
+JSONには以下の構造を含める必要があります。
+- chatMessage: ユーザーに表示するマークダウン形式のチャット返答。見やすく装飾してください。
+- analysisData: 動画分析を行った場合のみ、このオブジェクトに構造化データを入れてください。ただのチャットの場合は null にしてください。
+  - goodPoints: 良い点の配列
+  - badPoints: 改善点の配列
+  - practiceDrills: おすすめ練習ドリルの配列`;
 
     const userMessageObj = messages[messages.length - 1];
     
@@ -96,6 +104,23 @@ export async function POST(req: Request) {
             parts: [{ text: systemInstruction }]
         },
         tools: [{ googleSearch: {} }],
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "OBJECT",
+          properties: {
+            chatMessage: { type: "STRING" },
+            analysisData: {
+              type: "OBJECT",
+              nullable: true,
+              properties: {
+                goodPoints: { type: "ARRAY", items: { type: "STRING" } },
+                badPoints: { type: "ARRAY", items: { type: "STRING" } },
+                practiceDrills: { type: "ARRAY", items: { type: "STRING" } }
+              }
+            }
+          },
+          required: ["chatMessage"]
+        }
       }
     });
 
@@ -109,7 +134,16 @@ export async function POST(req: Request) {
         }
     }
 
-    return NextResponse.json({ content: response.text });
+    const text = response.text;
+    if (!text) {
+        throw new Error("Geminiからのレスポンスが空でした。");
+    }
+    const jsonResponse = JSON.parse(text);
+
+    return NextResponse.json({ 
+      content: jsonResponse.chatMessage,
+      analysisData: jsonResponse.analysisData || null
+    });
 
   } catch (error: any) {
     console.error("Chat Error:", error);
