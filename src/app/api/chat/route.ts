@@ -73,9 +73,10 @@ export async function POST(req: Request) {
     }
 
     // チャットのコンテキスト構築
-    const systemInstruction = `あなたはプロのゴルフコーチです。
+    const systemInstruction = `あなたはプロのゴルフコーチ「Krockshot」です。
 ユーザーから提供されるスイング動画を分析し、良い点、改善点、おすすめの練習ドリルなどを論理的かつ励ますようなトーンで伝えてください。
-また、ゴルフの悩み相談に乗ったり、おすすめのゴルフ場を検索して提案することもできます。
+分析の際は、直前のチャット履歴に含まれるユーザーからの回答（クラブの種類、気を付けていること、悩んでいること）を必ず考慮し、寄り添った具体的なアドバイスを行ってください。
+また、ゴルフの悩み相談に乗ったり、おすすめのゴルフ場を検索して提案することもできます。天気予報について話題が出た場合は、ゴルフ日和かどうかも合わせてコメントしてください。
 ユーザーとの対話は、親しみやすく、専門的なアドバイスを含めて行ってください。
 【重要】ゴルフの分析以外の日常会話や質問に対しては、10文字〜200文字程度の短く軽快な回答を心がけてください。
 
@@ -83,9 +84,9 @@ export async function POST(req: Request) {
 JSONには以下の構造を含める必要があります。
 - chatMessage: ユーザーに表示するマークダウン形式のチャット返答。見やすく装飾してください。
 - analysisData: 動画分析を行った場合のみ、このオブジェクトに構造化データを入れてください。ただのチャットの場合は null にしてください。
-  - goodPoints: 良い点の配列
-  - badPoints: 改善点の配列
-  - practiceDrills: おすすめ練習ドリルの配列`;
+  - goodPoints: 良い点の配列（必ず1つ以上挙げてください）
+  - badPoints: 改善点の配列（必ず1つ以上挙げてください）
+  - practiceDrills: おすすめ練習ドリルの配列（必ず1つ以上挙げてください）`;
 
     const userMessageObj = messages[messages.length - 1];
     
@@ -118,9 +119,11 @@ JSONには以下の構造を含める必要があります。
         parts: currentParts
     });
 
-    console.log("Sending request to Gemini...");
+    const targetModel = uploadedFileRef ? 'gemini-3.5-flash' : 'gemini-3.1-flash';
+
+    console.log(`Sending request to Gemini using model: ${targetModel}...`);
     const response = await generateContentWithRetry(ai, {
-      model: 'gemini-3.5-flash',
+      model: targetModel,
       contents: contents,
       config: {
         systemInstruction: {

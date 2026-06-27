@@ -54,15 +54,15 @@ export default function Home() {
       </div>
 
       {/* 2カラムレイアウト: LG以上で左右分割、それ未満は上下分割 */}
-      <div className="flex flex-col lg:flex-row h-full w-full gap-4 px-2 md:px-6 pb-6 overflow-hidden mt-10 md:mt-0 pt-2">
+      <div className="flex flex-col lg:flex-row h-full w-full overflow-hidden mt-10 md:mt-0">
         
         {/* 左側: ダッシュボード */}
-        <div className="flex-[2] lg:flex-[2.5] h-full overflow-hidden rounded-2xl glass-panel border border-white/5 bg-slate-900/30">
+        <div className="flex-1 lg:flex-[2.5] h-full overflow-hidden">
           <Dashboard onTopicClick={handleTopicClick} analysisData={analysisData} />
         </div>
 
         {/* 右側: チャットUI */}
-        <div className="flex-1 lg:min-w-[360px] xl:max-w-md h-[600px] lg:h-full shrink-0">
+        <div className="flex-1 lg:min-w-[360px] xl:max-w-md h-[600px] lg:h-full shrink-0 relative">
           <ChatUI 
             triggerMessage={triggerMessage} 
             onMessageTriggered={handleMessageTriggered} 
