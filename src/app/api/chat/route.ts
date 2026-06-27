@@ -163,9 +163,18 @@ JSONには以下の構造を含める必要があります。
     }
     const jsonResponse = JSON.parse(text);
 
+    let normalizedAnalysisData = null;
+    if (jsonResponse.analysisData) {
+      normalizedAnalysisData = {
+        goodPoints: jsonResponse.analysisData.goodPoints || [],
+        badPoints: jsonResponse.analysisData.badPoints || [],
+        practiceDrills: jsonResponse.analysisData.practiceDrills || []
+      };
+    }
+
     return NextResponse.json({ 
       content: jsonResponse.chatMessage,
-      analysisData: jsonResponse.analysisData || null
+      analysisData: normalizedAnalysisData
     });
 
   } catch (error: any) {

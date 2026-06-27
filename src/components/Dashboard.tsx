@@ -125,7 +125,7 @@ export default function Dashboard({ onTopicClick, analysisData }: DashboardProps
                 <h3 className="text-xl font-bold text-white group-hover:text-emerald-400 transition-colors">良い点 (Good Points)</h3>
               </div>
               <ul className="space-y-3">
-                {analysisData.goodPoints.map((point, i) => (
+                {(analysisData.goodPoints || []).map((point, i) => (
                   <li key={i} className="flex items-start gap-2 text-slate-200">
                     <span className="text-emerald-400 mt-1">•</span>
                     <span>{point}</span>
@@ -146,7 +146,7 @@ export default function Dashboard({ onTopicClick, analysisData }: DashboardProps
                 <h3 className="text-xl font-bold text-white group-hover:text-rose-400 transition-colors">改善点 (Needs Improvement)</h3>
               </div>
               <ul className="space-y-3">
-                {analysisData.badPoints.map((point, i) => (
+                {(analysisData.badPoints || []).map((point, i) => (
                   <li key={i} className="flex items-start gap-2 text-slate-200">
                     <span className="text-rose-400 mt-1">•</span>
                     <span>{point}</span>
@@ -167,7 +167,7 @@ export default function Dashboard({ onTopicClick, analysisData }: DashboardProps
                 <h3 className="text-xl font-bold text-white group-hover:text-cyan-400 transition-colors">おすすめ練習ドリル (Practice Drills)</h3>
               </div>
               <ul className="space-y-3">
-                {analysisData.practiceDrills.map((drill, i) => (
+                {(analysisData.practiceDrills || []).map((drill, i) => (
                   <li key={i} className="flex items-start gap-2 text-slate-200 bg-slate-800/50 p-3 rounded-lg border border-white/5">
                     <span className="text-cyan-400 font-bold">{i + 1}.</span>
                     <span>{drill}</span>
